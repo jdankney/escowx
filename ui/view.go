@@ -32,11 +32,12 @@ func (m *Model) View() string {
 	}
 
 	header := m.viewHeader(W)
+	tabs := m.viewTabs(W)
 	footer := m.viewFooter(W)
 	banner := m.viewBanner(W)
-	used := 2 + lipgloss.Height(banner)
+	used := 3 + lipgloss.Height(banner)
 	if banner == "" {
-		used = 2
+		used = 3
 	}
 
 	var body string
@@ -49,7 +50,7 @@ func (m *Model) View() string {
 		body = m.viewDashboard(W, H-used)
 	}
 
-	parts := []string{header}
+	parts := []string{header, tabs}
 	if banner != "" {
 		parts = append(parts, banner)
 	}
@@ -87,6 +88,33 @@ func (m *Model) viewHeader(W int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
+// viewTabs is the tab bar, with tab-specific context on the right.
+func (m *Model) viewTabs(W int) string {
+	var b strings.Builder
+	b.WriteString(" ")
+	for t := tab(0); t < numTabs; t++ {
+		label := fmt.Sprintf(" %d %s ", t+1, t)
+		if t == m.tab {
+			b.WriteString(lipgloss.NewStyle().Background(colAccent).Foreground(colBlack).Bold(true).Render(label))
+		} else {
+			b.WriteString(sDim.Render(label))
+		}
+		b.WriteString(" ")
+	}
+	left := b.String()
+	var right string
+	switch m.tab {
+	case tabMain:
+		if m.focus != 0 {
+			right = sDim.Render("showing ") + sText.Render(m.locs[m.focus].Cfg.Name) + sDim.Render(" · esc: back to ") + sText.Render(m.locs[0].Cfg.Name)
+		}
+	case tabMap:
+		right = sDim.Render("layer ") + sAccent.Bold(true).Render(m.mapLayer.String()) + sDim.Render(" · v: change")
+	}
+	right += " "
+	return left + strings.Repeat(" ", max(1, W-lipgloss.Width(left)-lipgloss.Width(right))) + right
+}
+
 // dataAge shows the age of the oldest successful update across locations.
 func (m *Model) dataAge(get func(*wx.Location) time.Time) string {
 	var oldest time.Time
@@ -103,7 +131,18 @@ func (m *Model) dataAge(get func(*wx.Location) time.Time) string {
 }
 
 func (m *Model) viewFooter(W int) string {
-	keys := [][2]string{{"q", "quit"}, {"r", "refresh"}, {"←↑↓→/tab", "move"}, {"enter", "focus/expand"}, {"a", "alerts"}, {"?", "help"}}
+	keys := [][2]string{{"q", "quit"}, {"r", "refresh"}, {"1-3/tab", "tabs"}}
+	switch {
+	case m.pane == paneAlerts:
+		keys = append(keys, [2]string{"↑↓", "select"}, [2]string{"enter", "details"}, [2]string{"esc", "back"})
+	case m.tab == tabMain:
+		keys = append(keys, [2]string{"↓/a", "alerts"})
+	case m.tab == tabNearby:
+		keys = append(keys, [2]string{"←↑↓→", "move"}, [2]string{"enter", "open"}, [2]string{"a", "alerts"})
+	case m.tab == tabMap:
+		keys = append(keys, [2]string{"←↑↓→", "select"}, [2]string{"enter", "open"}, [2]string{"v", "layer"})
+	}
+	keys = append(keys, [2]string{"?", "help"})
 	if m.demo {
 		keys = append(keys, [2]string{"m/M", "demo mode"})
 	}
@@ -182,28 +221,41 @@ func (m *Model) viewBanner(W int) string {
 func (m *Model) viewDashboard(W, H int) string {
 	alertsH := m.alertsHeight(H)
 	mainH := H - alertsH
-	others := m.gridIndices()
-
 	var top string
-	if W >= wideLayout {
-		leftW := clamp(W*2/5, 46, 76)
-		gridW := W - leftW
-		top = lipgloss.JoinHorizontal(lipgloss.Top,
-			m.viewPrimary(leftW, mainH),
-			m.viewGrid(others, gridW, mainH))
-	} else {
-		// Narrow: the surrounding areas become a one-line-per-location list
-		// under the large panel, as long as that leaves it 10 lines.
-		listH := min(len(others)+2, mainH-10)
-		if listH < 3 {
-			top = m.viewPrimary(W, mainH)
-		} else {
-			top = lipgloss.JoinVertical(lipgloss.Left,
-				m.viewPrimary(W, mainH-listH),
-				m.viewList(others, W, listH))
-		}
+	switch m.tab {
+	case tabMain:
+		top = m.viewMain(W, mainH)
+	case tabNearby:
+		top = m.viewNearby(W, mainH)
+	case tabMap:
+		top = m.viewMap(W, mainH)
 	}
 	return fitLines(top+"\n"+m.viewAlerts(W, alertsH), W, H)
+}
+
+// viewMain shows one location: conditions and hourly on the left, the
+// detailed forecast on the right (stacked into one panel when narrow).
+func (m *Model) viewMain(W, H int) string {
+	if W < wideLayout {
+		return m.viewPrimary(W, H, true)
+	}
+	leftW := clamp(W*11/20, 50, W-40)
+	return lipgloss.JoinHorizontal(lipgloss.Top,
+		m.viewPrimary(leftW, H, false),
+		m.viewForecast(W-leftW, H))
+}
+
+// viewNearby is the grid of every non-primary location, falling back to a
+// one-line-per-location list when the cards would be too short.
+func (m *Model) viewNearby(W, H int) string {
+	others := m.gridIndices()
+	if len(others) == 0 {
+		return box{title: sBold.Render("Nearby"), body: []string{sDim.Render("Add more locations to config.yaml to see them here.")}, color: colFaint}.render(W, H)
+	}
+	if cols, rows := gridShape(len(others), W, H); H/rows < 5 || W/cols < 20 {
+		return m.viewList(others, W, H)
+	}
+	return m.viewGrid(others, W, H)
 }
 
 // viewList is the compact surrounding-locations panel for narrow terminals.
@@ -278,14 +330,7 @@ func (m *Model) viewGrid(idx []int, W, H int) string {
 	if len(idx) == 0 {
 		return blank(W, H)
 	}
-	cols := clamp(W/cellMinW, 1, len(idx))
-	rows := (len(idx) + cols - 1) / cols
-	// If cells would be shorter than 5 lines, add columns while they can
-	// stay at least 20 wide.
-	for rows > 1 && H/rows < 5 && cols < len(idx) && W/(cols+1) >= 20 {
-		cols++
-		rows = (len(idx) + cols - 1) / cols
-	}
+	cols, rows := gridShape(len(idx), W, H)
 	m.gridCols = cols
 
 	var rowStrs []string
@@ -312,6 +357,18 @@ func (m *Model) viewGrid(idx []int, W, H int) string {
 	return lipgloss.JoinVertical(lipgloss.Left, rowStrs...)
 }
 
+// gridShape picks columns and rows for n cards in W×H. If cards would be
+// shorter than 5 lines, it adds columns while they can stay 20 wide.
+func gridShape(n, W, H int) (cols, rows int) {
+	cols = clamp(W/cellMinW, 1, n)
+	rows = (n + cols - 1) / cols
+	for rows > 1 && H/rows < 5 && cols < n && W/(cols+1) >= 20 {
+		cols++
+		rows = (n + cols - 1) / cols
+	}
+	return cols, rows
+}
+
 func (m *Model) isSelected(i int) bool { return m.pane == paneLocations && m.sel == i }
 
 func (m *Model) viewCell(i, w, h int) string {
@@ -319,27 +376,48 @@ func (m *Model) viewCell(i, w, h int) string {
 	inner := w - 4
 	col := modeColors[l.Mode]
 
+	b := badge(l.Mode, true)
 	temp := "—"
 	if l.Obs != nil && l.Obs.TempF != nil {
-		temp = lipgloss.NewStyle().Foreground(tempColor(*l.Obs.TempF)).Bold(true).Render(fmt.Sprintf("%.0f°F", *l.Obs.TempF))
+		t := fmt.Sprintf("%.0f°F", *l.Obs.TempF)
+		if lipgloss.Width(b)+1+len(t) > inner {
+			t = strings.TrimSuffix(t, "F")
+		}
+		temp = lipgloss.NewStyle().Foreground(tempColor(*l.Obs.TempF)).Bold(true).Render(t)
 	}
-	b := badge(l.Mode, true)
 	line1 := b + strings.Repeat(" ", max(1, inner-lipgloss.Width(b)-lipgloss.Width(temp))) + temp
 
-	body := []string{line1, sText.Render(conditions(l))}
-	if hi, lo, ok := todayHiLo(l.Forecast); ok {
-		body = append(body, sDim.Render(hi+"  "+lo))
-	}
-	names := alertNames(l, m.now)
-	if len(names) > 0 {
+	var alertLines []string
+	if names := alertNames(l, m.now); len(names) > 0 {
 		for _, ln := range wrap(strings.Join(names, ", "), inner) {
-			body = append(body, modeFg(l.Mode).Render(ln))
+			alertLines = append(alertLines, modeFg(l.Mode).Render(ln))
 		}
 	} else if s := loadState(l); s != "" {
-		body = append(body, s)
+		alertLines = []string{s}
 	} else {
-		body = append(body, sFaint.Render("no alerts"))
+		alertLines = []string{sFaint.Render("no alerts")}
 	}
+
+	// Extras fill whatever room the alerts leave, in priority order.
+	var extras []string
+	if hi, lo, ok := todayHiLo(l.Forecast); ok {
+		extras = append(extras, sDim.Render(hi+"  "+lo))
+	}
+	if o := l.Obs; o != nil {
+		hum := "—"
+		if o.Humidity != nil {
+			hum = fmt.Sprintf("%.0f%%", *o.Humidity)
+		}
+		extras = append(extras, sDim.Render("Wind ")+sText.Render(windText(o))+sDim.Render(" · RH ")+sText.Render(hum))
+	}
+	if sp := sparkline(l.Hourly, inner-4); sp != "" {
+		extras = append(extras, sDim.Render("12h ")+sp)
+	}
+	room := h - 2 - 2 - len(alertLines)
+	extras = extras[:clamp(room, 0, len(extras))]
+
+	body := append([]string{line1, sText.Render(conditions(l))}, extras...)
+	body = append(body, alertLines...)
 
 	title := modeFg(l.Mode).Bold(true).Render(l.Cfg.Name)
 	if m.focus == i {
@@ -354,7 +432,7 @@ func (m *Model) viewCell(i, w, h int) string {
 	}.render(w, h)
 }
 
-func (m *Model) viewPrimary(w, h int) string {
+func (m *Model) viewPrimary(w, h int, withForecast bool) string {
 	i := m.focus
 	l := m.locs[i]
 	inner := w - 4
@@ -374,10 +452,17 @@ func (m *Model) viewPrimary(w, h int) string {
 	}
 
 	if len(l.Hourly) > 0 {
-		body = append(body, "", sAccent.Bold(true).Render("Next 12 hours"))
-		body = append(body, hourlyStrip(l.Hourly, inner)...)
+		// Without the forecast below, let the bars use the spare height.
+		rows := 3
+		if !withForecast {
+			rows = clamp(h-2-len(body)-5, 3, 10)
+		}
+		strip := hourlyStrip(l.Hourly, inner, rows)
+		n := min(len(l.Hourly), inner/4)
+		body = append(body, "", sAccent.Bold(true).Render(fmt.Sprintf("Next %d hours", n)))
+		body = append(body, strip...)
 	}
-	if len(l.Forecast) > 0 {
+	if withForecast && len(l.Forecast) > 0 {
 		body = append(body, "", sAccent.Bold(true).Render("Forecast"))
 		for _, p := range l.Forecast {
 			body = append(body, forecastLine(p, inner))
@@ -398,7 +483,39 @@ func (m *Model) viewPrimary(w, h int) string {
 		footer: m.freshness(l, false),
 		body:   body,
 		color:  modeColors[l.Mode],
-		heavy:  m.isSelected(i),
+	}.render(w, h)
+}
+
+// viewForecast lists the forecast periods with as much of each period's
+// detailed text as fits.
+func (m *Model) viewForecast(w, h int) string {
+	l := m.locs[m.focus]
+	inner := w - 4
+	var body []string
+	if len(l.Forecast) == 0 {
+		body = []string{sDim.Render("waiting for forecast…")}
+	}
+	n := max(1, len(l.Forecast))
+	per := (h - 2) / n // lines available per period, including its headline
+	for _, p := range l.Forecast {
+		body = append(body, forecastLine(p, inner))
+		detail := wrap(p.Detailed, inner-2)
+		k := clamp(per-2, 0, len(detail)) // leave a spacer line
+		if k < len(detail) && k > 0 {
+			detail[k-1] = ansi.Truncate(detail[k-1], inner-3, "") + "…"
+		}
+		for _, d := range detail[:k] {
+			body = append(body, "  "+sDim.Render(d))
+		}
+		if per >= 3 {
+			body = append(body, "")
+		}
+	}
+	return box{
+		title: sAccent.Bold(true).Render("Forecast"),
+		right: sDim.Render(l.Cfg.Name),
+		body:  body,
+		color: colFaint,
 	}.render(w, h)
 }
 
@@ -605,11 +722,13 @@ func (m *Model) viewHelp(maxW int) string {
 	rows := [][2]string{
 		{"q / ctrl+c", "quit"},
 		{"r", "refresh everything now"},
-		{"← → ↑ ↓ / hjkl", "move between locations and alerts"},
-		{"tab / shift+tab", "cycle locations, then the alerts pane"},
-		{"enter", "show selected location in the large panel / expand alert"},
-		{"esc", "back to the primary location / close"},
+		{"1 2 3", "Main / Nearby / Map tabs"},
+		{"tab / shift+tab", "next / previous tab"},
+		{"← → ↑ ↓ / hjkl", "move between locations (Map: nearest in that direction)"},
+		{"enter", "open selected location on Main / expand alert"},
+		{"esc", "back to the primary location / leave alerts / close"},
 		{"a", "jump to the alerts pane"},
+		{"v", "Map: cycle layer (temperature, threat, rain chance)"},
 		{"?", "toggle this help"},
 	}
 	if m.demo {
@@ -755,10 +874,10 @@ func forecastLine(p api.Period, w int) string {
 	return sText.Render(padRight(p.Name, nameW)) + " " + temp + " " + pop + "  " + sDim.Render(ansi.Truncate(short, max(0, w-nameW-13), "…"))
 }
 
-// hourlyStrip draws temperature bars (3 rows tall) for the next hours with
+// hourlyStrip draws temperature bars (rows tall) for the next hours with
 // temp labels above and hour / precip labels below.
-func hourlyStrip(hrs []api.Period, w int) []string {
-	const colW, rows = 4, 3
+func hourlyStrip(hrs []api.Period, w, rows int) []string {
+	const colW = 4
 	n := min(len(hrs), w/colW)
 	if n == 0 {
 		return nil
@@ -789,6 +908,9 @@ func hourlyStrip(hrs []api.Period, w int) []string {
 		p := ""
 		if h.PrecipChance != nil && *h.PrecipChance >= 10 {
 			p = fmt.Sprintf("%.0f%%", *h.PrecipChance)
+			if *h.PrecipChance >= 99.5 {
+				p = "100" // "100%" would touch the next column
+			}
 			anyPop = true
 		}
 		pops.WriteString(sRain.Render(padRight(p, colW)))
@@ -802,6 +924,29 @@ func hourlyStrip(hrs []api.Period, w int) []string {
 		out = append(out, pops.String())
 	}
 	return out
+}
+
+// sparkline is a one-row temperature trend for the next 12 hours.
+func sparkline(hrs []api.Period, w int) string {
+	n := min(len(hrs), 12, w)
+	if n < 2 {
+		return ""
+	}
+	hrs = hrs[:n]
+	lo, hi := hrs[0].Temperature, hrs[0].Temperature
+	for _, h := range hrs {
+		lo, hi = min(lo, h.Temperature), max(hi, h.Temperature)
+	}
+	blocks := []rune("▁▂▃▄▅▆▇█")
+	var b strings.Builder
+	for _, h := range hrs {
+		k := 3
+		if hi > lo {
+			k = (h.Temperature - lo) * 7 / (hi - lo)
+		}
+		b.WriteString(lipgloss.NewStyle().Foreground(tempColor(float64(h.Temperature))).Render(string(blocks[k])))
+	}
+	return b.String() + sDim.Render(fmt.Sprintf(" %d–%d°", lo, hi))
 }
 
 // bigText renders digits, '-', '°' and 'F' in a 3-row block font.

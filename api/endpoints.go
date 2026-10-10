@@ -53,26 +53,37 @@ func (c *Client) ActiveAlerts(ctx context.Context, lat, lon float64) ([]Alert, e
 }
 
 // LatestObservation fetches the latest observation from the point's first
-// station. If that station has no current observation (404) it falls back
-// to the next nearest, up to three stations.
+// station. If that station has no current observation (404) or its latest
+// report has no temperature, it tries the next nearest, up to five
+// stations, returning the best it found.
 func (c *Client) LatestObservation(ctx context.Context, p *Point) (*Observation, error) {
 	if len(p.Stations) == 0 {
 		return nil, errors.New("no observation stations")
 	}
+	var first *Observation
 	var lastErr error
 	for i, st := range p.Stations {
-		if i >= 3 {
+		if i >= 5 {
 			break
 		}
 		obs, err := c.observation(ctx, st.ID)
 		if err == nil {
-			return obs, nil
+			if obs.TempF != nil {
+				return obs, nil
+			}
+			if first == nil {
+				first = obs
+			}
+			continue
 		}
 		lastErr = err
 		var he *HTTPError
 		if !errors.As(err, &he) || he.Status != 404 {
 			break
 		}
+	}
+	if first != nil {
+		return first, nil
 	}
 	return nil, lastErr
 }

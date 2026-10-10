@@ -30,6 +30,19 @@ const (
 	paneAlerts
 )
 
+type tab int
+
+const (
+	tabMain tab = iota
+	tabNearby
+	tabMap
+	numTabs
+)
+
+func (t tab) String() string {
+	return [...]string{"Main", "Nearby", "Map"}[t]
+}
+
 type Model struct {
 	cfg     *config.Config
 	client  *api.Client
@@ -43,9 +56,11 @@ type Model struct {
 	width, height int
 	gridCols      int // columns in the surrounding-locations grid, from the last layout
 
+	tab      tab
 	pane     pane
-	sel      int // selected location
-	focus    int // location shown in the large panel
+	sel      int // selected location on the Nearby / Map tabs
+	focus    int // location shown on the Main tab
+	mapLayer mapLayer
 	alertSel int
 	alertOff int
 	alerts   []wx.AlertEntry // merged, sorted; rebuilt on every change
@@ -82,6 +97,9 @@ func New(cfg *config.Config, client *api.Client, tr *tracker.Tracker, demoMode b
 	}
 	for _, l := range cfg.Locations {
 		m.locs = append(m.locs, &wx.Location{Cfg: l})
+	}
+	if len(m.locs) > 1 {
+		m.sel = 1
 	}
 	if demoMode {
 		m.demoModes = demo.Initial(len(m.locs))
@@ -328,16 +346,25 @@ func (m *Model) handleKey(k tea.KeyMsg) tea.Cmd {
 	case "r":
 		return m.refreshAll()
 	case "esc":
-		m.focus = 0
-		m.pane = paneLocations
+		if m.pane == paneAlerts {
+			m.pane = paneLocations
+		} else {
+			m.focus = 0
+		}
 	case "a":
 		if len(m.alerts) > 0 {
 			m.pane = paneAlerts
 		}
+	case "1", "2", "3":
+		m.setTab(tab(key[0] - '1'))
 	case "tab":
-		m.cycle(1)
+		m.setTab((m.tab + 1) % numTabs)
 	case "shift+tab":
-		m.cycle(-1)
+		m.setTab((m.tab + numTabs - 1) % numTabs)
+	case "v":
+		if m.tab == tabMap {
+			m.mapLayer = (m.mapLayer + 1) % numLayers
+		}
 	case "left", "h":
 		m.moveH(-1)
 	case "right", "l":
@@ -362,20 +389,24 @@ func (m *Model) handleKey(k tea.KeyMsg) tea.Cmd {
 				m.vp.SetContent(m.alertDetail(m.alerts[m.alertSel]))
 				m.vp.GotoTop()
 			}
-		} else if m.focus == m.sel && m.sel != 0 {
-			m.focus = 0 // enter again on the focused location returns to primary
-		} else {
+		} else if m.tab != tabMain {
+			// Open the selected location on the Main tab.
 			m.focus = m.sel
+			m.setTab(tabMain)
 		}
 	case "m", "M":
 		if !m.demo {
 			return nil
 		}
+		cur := m.sel
+		if m.tab == tabMain {
+			cur = m.focus
+		}
 		if key == "m" {
-			m.demoModes[m.sel] = (m.demoModes[m.sel] + 1) % 4
+			m.demoModes[cur] = (m.demoModes[cur] + 1) % 4
 		} else {
-			// Cycle every location together, based on the selected one.
-			next := (m.demoModes[m.sel] + 1) % 4
+			// Cycle every location together, based on the current one.
+			next := (m.demoModes[cur] + 1) % 4
 			for i := range m.locs {
 				m.demoModes[i] = next
 			}
@@ -385,53 +416,36 @@ func (m *Model) handleKey(k tea.KeyMsg) tea.Cmd {
 	return nil
 }
 
-// cycle moves through every location, then the alerts pane, and around.
-func (m *Model) cycle(d int) {
-	n := len(m.locs)
-	stops := n
-	if len(m.alerts) > 0 {
-		stops++
-	}
-	cur := m.sel
-	if m.pane == paneAlerts {
-		cur = n
-	}
-	next := ((cur+d)%stops + stops) % stops
-	if next == n {
-		m.pane = paneAlerts
-	} else {
-		m.pane, m.sel = paneLocations, next
+func (m *Model) setTab(t tab) {
+	m.tab, m.pane = t, paneLocations
+	if t == tabNearby && m.sel == 0 && len(m.locs) > 1 {
+		m.sel = 1 // the primary isn't on the Nearby tab
 	}
 }
 
-// moveH moves left/right: between the large panel and the grid, and along
-// grid rows.
+// moveH moves left/right: along grid rows on Nearby, spatially on Map.
 func (m *Model) moveH(d int) {
 	if m.pane != paneLocations {
 		return
 	}
-	n, cols := len(m.locs), max(1, m.gridCols)
-	if m.sel == 0 {
-		if d > 0 && n > 1 {
-			m.sel = 1
+	switch m.tab {
+	case tabNearby:
+		n, cols := len(m.locs), max(1, m.gridCols)
+		col := (m.sel - 1) % cols
+		switch {
+		case d < 0 && col > 0:
+			m.sel--
+		case d > 0 && col < cols-1 && m.sel+1 < n:
+			m.sel++
 		}
-		return
-	}
-	col := (m.sel - 1) % cols
-	switch {
-	case d < 0 && col == 0:
-		m.sel = 0
-	case d < 0:
-		m.sel--
-	case d > 0 && col < cols-1 && m.sel+1 < n:
-		m.sel++
+	case tabMap:
+		m.mapNav(d, 0)
 	}
 }
 
-// moveV moves up/down within the grid, falling into / out of the alerts
-// pane at the bottom.
+// moveV moves up/down within a tab, falling into the alerts pane at the
+// bottom and back out of it at the top.
 func (m *Model) moveV(d int) {
-	n, cols := len(m.locs), max(1, m.gridCols)
 	if m.pane == paneAlerts {
 		if d < 0 && m.alertSel == 0 {
 			m.pane = paneLocations
@@ -440,17 +454,17 @@ func (m *Model) moveV(d int) {
 		m.alertSel = max(0, min(len(m.alerts)-1, m.alertSel+d))
 		return
 	}
-	if m.sel == 0 {
-		if d > 0 && len(m.alerts) > 0 {
-			m.pane = paneAlerts
+	moved := false
+	switch m.tab {
+	case tabNearby:
+		n, cols := len(m.locs), max(1, m.gridCols)
+		if next := m.sel + d*cols; next >= 1 && next < n {
+			m.sel, moved = next, true
 		}
-		return
+	case tabMap:
+		moved = m.mapNav(0, d)
 	}
-	next := m.sel + d*cols
-	switch {
-	case next >= 1 && next < n:
-		m.sel = next
-	case d > 0 && len(m.alerts) > 0:
+	if !moved && d > 0 && len(m.alerts) > 0 {
 		m.pane = paneAlerts
 	}
 }

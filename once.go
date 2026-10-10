@@ -94,11 +94,12 @@ func runOnce(cfg *config.Config, client *api.Client, demoMode bool, w io.Writer)
 		}
 	}
 	if len(p.Hourly) > 0 {
+		hrs := p.Hourly[:min(12, len(p.Hourly))]
 		var parts []string
-		for _, h := range p.Hourly {
+		for _, h := range hrs {
 			parts = append(parts, fmt.Sprintf("%s %d°", h.Start.Local().Format("3PM"), h.Temperature))
 		}
-		fmt.Fprintf(w, "\nNext %d hours: %s\n", len(p.Hourly), strings.Join(parts, " · "))
+		fmt.Fprintf(w, "\nNext %d hours: %s\n", len(hrs), strings.Join(parts, " · "))
 	}
 
 	alerts := wx.MergeAlerts(locs, now)

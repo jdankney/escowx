@@ -16,7 +16,7 @@ import (
 
 const (
 	ForecastPeriods = 6
-	HourlyPeriods   = 12
+	HourlyPeriods   = 24
 )
 
 type Location struct {

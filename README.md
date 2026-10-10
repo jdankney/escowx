@@ -64,28 +64,43 @@ not in the table fall back to severity ("Severe" → HEIGHTENED), then wording
 shows the worst location overall. Mode changes are appended to
 `~/.local/state/escowx/escowx.log` (`$XDG_STATE_HOME` is respected).
 
+## Tabs
+
+- **1 Main**: the primary location (or one you opened from another tab): current
+  conditions, an hourly temperature/rain strip, and the detailed forecast.
+- **2 Nearby**: cards for every other location: mode, temperature, conditions,
+  wind, humidity, a 12-hour trend, and active alerts.
+- **3 Map**: every location plotted at its real position over a colored field
+  interpolated between them. Press `v` to switch layers: **temperature** (with
+  wind arrows), **threat** (each area colored by its nearest location's mode),
+  or **rain chance** this hour.
+
+The alerts pane (every active alert, worst first) and the TAKE COVER banner
+appear on every tab.
+
 ## Keys
 
 | Key | Action |
 |---|---|
 | `q` / `ctrl+c` | quit |
 | `r` | refresh everything now |
-| arrows / `hjkl` | move between the large panel, the grid, and the alerts pane |
-| `tab` / `shift+tab` | cycle through locations, then the alerts pane |
-| `enter` | show the selected location in the large panel; in the alerts pane, open the full alert |
-| `esc` | back to the primary location / close |
+| `1` `2` `3` / `tab` / `shift+tab` | switch tabs |
+| arrows / `hjkl` | Nearby: move around the grid · Map: jump to the nearest place in that direction · ↓ past the bottom enters the alerts pane |
+| `enter` | open the selected place on Main; in the alerts pane, open the full alert |
+| `esc` | leave the alerts pane / return Main to the primary location / close |
 | `a` | jump to the alerts pane |
+| `v` | Map: cycle layers |
 | `?` | help |
-| `m` / `M` | demo mode only: cycle the selected location's mode, or every location's |
+| `m` / `M` | demo mode only: cycle the current location's mode, or every location's |
 
 ## Behavior notes
 
 - Each location's `/points` lookup and station list are fetched once at startup and cached.
 - Requests time out, retry 5xx/429 with exponential backoff, and never blank
   the screen. If a refresh fails, the last good data stays up with a **STALE** marker.
-- Observations come from the location's nearest station. Many of these are
-  personal weather stations that don't report sky conditions, so the sky text
-  falls back to the current hourly forecast.
+- Observations come from the location's nearest station. If its latest report
+  has no temperature (common with personal weather stations), the next nearest
+  is tried, up to five. Sky text falls back to the current hourly forecast.
 
 ## Layout
 
@@ -93,7 +108,7 @@ shows the worst location overall. Mode changes are appended to
 api/      NWS client, types, unit conversion
 modes/    alert → threat-mode classification (+ tests with sample alert JSON)
 wx/       per-location state, fetch orchestration, alert merging
-ui/       Bubble Tea model and views
+ui/       Bubble Tea model and views (mapview.go: the Map tab)
 tracker/  mode-change log, bell, desktop notifications
 demo/     fake alerts for --demo
 config/   config.yaml loading/defaults
