@@ -1,0 +1,74 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:wind.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:wind.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:wind.1",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Moderate",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Wind Advisory",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Wind Advisory issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "WIND ADVISORY IN EFFECT"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:sws.2",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:sws.2",
+    "@type": "wx:Alert",
+    "id": "urn:oid:sws.2",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Moderate",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Special Weather Statement",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Special Weather Statement issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "SPECIAL WEATHER STATEMENT IN EFFECT"
+     ]
+    }
+   }
+  }
+ ],
+ "title": "Current watches, warnings, and advisories"
+}

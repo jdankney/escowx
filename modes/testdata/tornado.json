@@ -1,0 +1,74 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:svr.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:svr.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:svr.1",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Severe",
+    "certainty": "Observed",
+    "urgency": "Immediate",
+    "event": "Severe Thunderstorm Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Severe Thunderstorm Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "SEVERE THUNDERSTORM WARNING IN EFFECT"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:tor.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:tor.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:tor.1",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Extreme",
+    "certainty": "Observed",
+    "urgency": "Immediate",
+    "event": "Tornado Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Tornado Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "TORNADO WARNING IN EFFECT"
+     ]
+    }
+   }
+  }
+ ],
+ "title": "Current watches, warnings, and advisories"
+}

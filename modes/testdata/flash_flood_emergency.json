@@ -1,0 +1,43 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:ffw.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:ffw.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:ffw.1",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Severe",
+    "certainty": "Observed",
+    "urgency": "Immediate",
+    "event": "Flash Flood Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Flash Flood Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "flashFloodDamageThreat": [
+      "Catastrophic"
+     ],
+     "NWSheadline": [
+      "FLASH FLOOD EMERGENCY FOR JULIAN"
+     ]
+    }
+   }
+  }
+ ],
+ "title": "Current watches, warnings, and advisories"
+}

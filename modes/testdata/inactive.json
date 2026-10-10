@@ -1,0 +1,142 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:tor.test",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:tor.test",
+    "@type": "wx:Alert",
+    "id": "urn:oid:tor.test",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Test",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Extreme",
+    "certainty": "Observed",
+    "urgency": "Immediate",
+    "event": "Tornado Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Tornado Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "TORNADO WARNING IN EFFECT"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:tor.cancel",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:tor.cancel",
+    "@type": "wx:Alert",
+    "id": "urn:oid:tor.cancel",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Cancel",
+    "category": "Met",
+    "severity": "Extreme",
+    "certainty": "Observed",
+    "urgency": "Immediate",
+    "event": "Tornado Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Tornado Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "TORNADO WARNING IN EFFECT"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:hww.old",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:hww.old",
+    "@type": "wx:Alert",
+    "id": "urn:oid:hww.old",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2020-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Severe",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "High Wind Warning",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "High Wind Warning issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "HIGH WIND WARNING IN EFFECT"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:fog.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:fog.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:fog.1",
+    "areaDesc": "San Diego County Valleys; San Diego County Mountains",
+    "sent": "2026-10-10T12:00:00-07:00",
+    "effective": "2026-10-10T12:00:00-07:00",
+    "onset": "2026-10-10T12:00:00-07:00",
+    "expires": "2099-01-01T00:00:00-08:00",
+    "ends": "2099-01-01T00:00:00-08:00",
+    "status": "Actual",
+    "messageType": "Alert",
+    "category": "Met",
+    "severity": "Minor",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Dense Fog Advisory",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS San Diego CA",
+    "headline": "Dense Fog Advisory issued October 10 at 12:00PM PDT by NWS San Diego CA",
+    "description": "* WHAT...Sample description.",
+    "instruction": "Sample instruction.",
+    "response": "Execute",
+    "parameters": {
+     "NWSheadline": [
+      "DENSE FOG ADVISORY IN EFFECT"
+     ]
+    }
+   }
+  }
+ ],
+ "title": "Current watches, warnings, and advisories"
+}
