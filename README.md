@@ -21,7 +21,7 @@ go test ./...
 ./escowx                 # full-screen dashboard
 ./escowx --once          # plain-text summary, then exit (for scripts/cron)
 ./escowx --demo          # inject fake alerts to preview every mode
-./escowx --config ~/.config/escowx.yaml --contact me@example.com
+./escowx --config ./other.yaml --contact me@example.com
 ```
 
 `--once` exits 0 on success and 1 if no location could be loaded. It can be
@@ -29,15 +29,16 @@ combined with `--demo`.
 
 ## Config
 
-On first run `config.yaml` is created in the current directory (or wherever
-`--config` points) with the default locations. Edit it to add or remove places:
+On first run `~/.config/escowx/config.yaml` is created with the default
+locations (`$XDG_CONFIG_HOME` is respected; `--config` points elsewhere). Edit
+it to add or remove places:
 
 ```yaml
 contact: you@example.com      # sent in the User-Agent; NWS asks for real contact info
 refresh:
   alerts: 60s
   forecast: 10m               # observations + forecasts
-log_file: escowx.log          # relative to the config file
+# log_file: ~/escowx.log      # default: ~/.local/state/escowx/escowx.log
 bell: true                    # terminal bell on entering TAKE COVER
 notify: true                  # desktop notification (notify-send / osascript)
 locations:
@@ -60,7 +61,8 @@ marked `primary` gets the large panel.
 The event→mode table lives in [`modes/events.go`](modes/events.go). Events
 not in the table fall back to severity ("Severe" → HEIGHTENED), then wording
 ("…Warning", "…Watch", …). Each location shows its worst live alert; the header
-shows the worst location overall. Mode changes are appended to `escowx.log`.
+shows the worst location overall. Mode changes are appended to
+`~/.local/state/escowx/escowx.log` (`$XDG_STATE_HOME` is respected).
 
 ## Keys
 

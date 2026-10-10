@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -54,8 +55,10 @@ refresh:
   alerts: 60s     # active alerts
   forecast: 10m   # observations + forecasts
 
-# Mode changes are appended here. Relative paths are relative to this file.
-log_file: escowx.log
+# Mode changes are appended to a log. The default location is
+# $XDG_STATE_HOME/escowx/escowx.log (~/.local/state/escowx/escowx.log).
+# Uncomment to override; relative paths are relative to this file.
+# log_file: ~/escowx.log
 
 bell: true     # ring the terminal bell when a location enters TAKE COVER
 notify: true   # best-effort desktop notification (notify-send / osascript)
@@ -74,11 +77,38 @@ locations:
   - { name: Julian,        lat: 33.0787, lon: -116.6020 }
 `
 
+// DefaultPath is $XDG_CONFIG_HOME/escowx/config.yaml (~/.config/escowx on
+// Linux, the platform equivalent elsewhere).
+func DefaultPath() (string, error) {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "escowx", "config.yaml"), nil
+}
+
+// defaultLogPath is $XDG_STATE_HOME/escowx/escowx.log, falling back to
+// ~/.local/state, which is where the XDG spec puts logs.
+func defaultLogPath() string {
+	dir := os.Getenv("XDG_STATE_HOME")
+	if !filepath.IsAbs(dir) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "escowx.log"
+		}
+		dir = filepath.Join(home, ".local", "state")
+	}
+	return filepath.Join(dir, "escowx", "escowx.log")
+}
+
 // Load reads the config at path, writing the defaults there first if the
 // file does not exist. created reports whether that happened.
 func Load(path string) (cfg *Config, created bool, err error) {
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, false, fmt.Errorf("creating config dir: %w", err)
+		}
 		if err := os.WriteFile(path, []byte(defaultYAML), 0o644); err != nil {
 			return nil, false, fmt.Errorf("writing default config: %w", err)
 		}
@@ -100,7 +130,6 @@ func Parse(data []byte) (*Config, error) {
 	cfg := &Config{
 		Contact: PlaceholderContact,
 		Refresh: Refresh{Alerts: time.Minute, Forecast: 10 * time.Minute},
-		LogFile: "escowx.log",
 		Bell:    true,
 		Notify:  true,
 	}
@@ -139,11 +168,21 @@ func Parse(data []byte) (*Config, error) {
 	return cfg, nil
 }
 
-// LogPath returns the mode-change log path, resolved relative to the
-// config file's directory.
+// LogPath returns the mode-change log path: the XDG state default when
+// log_file is unset, otherwise log_file with ~ expanded and relative paths
+// resolved against the config file's directory.
 func (c *Config) LogPath() string {
-	if c.LogFile == "" || filepath.IsAbs(c.LogFile) {
-		return c.LogFile
+	p := c.LogFile
+	if p == "" {
+		return defaultLogPath()
 	}
-	return filepath.Join(filepath.Dir(c.path), c.LogFile)
+	if p == "~" || strings.HasPrefix(p, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			p = filepath.Join(home, p[1:])
+		}
+	}
+	if filepath.IsAbs(p) {
+		return p
+	}
+	return filepath.Join(filepath.Dir(c.path), p)
 }

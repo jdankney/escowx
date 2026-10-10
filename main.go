@@ -16,12 +16,20 @@ import (
 )
 
 func main() {
-	cfgPath := flag.String("config", "config.yaml", "path to config file (created with defaults if missing)")
+	cfgPath := flag.String("config", "", "path to config file, created with defaults if missing (default ~/.config/escowx/config.yaml)")
 	contact := flag.String("contact", "", "contact for the API User-Agent (overrides config and ESCOWX_CONTACT)")
 	demoMode := flag.Bool("demo", false, "inject fake alerts to preview every threat mode (m / M cycle modes)")
 	once := flag.Bool("once", false, "print a plain-text summary and exit")
 	flag.Parse()
 
+	if *cfgPath == "" {
+		p, err := config.DefaultPath()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "escowx: finding config dir:", err, "(use --config)")
+			os.Exit(2)
+		}
+		*cfgPath = p
+	}
 	cfg, created, err := config.Load(*cfgPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "escowx:", err)

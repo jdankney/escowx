@@ -116,7 +116,7 @@ func (m *Model) viewFooter(W int) string {
 	if st := m.statusLine(); st != "" {
 		s += sErr.Render(st)
 	} else if m.cfg.Contact == config.PlaceholderContact {
-		s += sStale.Render("set `contact` in config.yaml")
+		s += sStale.Render("set `contact` in ~/.config/escowx/config.yaml")
 	}
 	return padRight(s, W)
 }
