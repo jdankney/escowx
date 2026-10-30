@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/j4mes/escowx/modes"
+	"github.com/jdankney/escowx/modes"
 )
 
 // Dark-friendly palette.

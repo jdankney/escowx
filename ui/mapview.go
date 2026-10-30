@@ -8,9 +8,9 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/modes"
-	"github.com/j4mes/escowx/wx"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/modes"
+	"github.com/jdankney/escowx/wx"
 )
 
 // The Map tab plots every location at its real position over a colored

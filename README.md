@@ -6,7 +6,7 @@ four-level threat mode per location.
 
 > escowx is where this project started, tuned for one corner of San Diego
 > County. Its general-purpose successor is
-> [ttywx](https://github.com/j4mes/ttywx): any US location, place-name lookup,
+> [ttywx](https://github.com/jdankney/ttywx): any US location, place-name lookup,
 > metric units, and release binaries. New users should start there.
 
 Data comes only from [api.weather.gov](https://www.weather.gov/documentation/services-web-api) (no API key).

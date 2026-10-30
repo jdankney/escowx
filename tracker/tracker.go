@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/modes"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/modes"
 )
 
 type Tracker struct {

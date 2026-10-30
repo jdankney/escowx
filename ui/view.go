@@ -9,10 +9,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/config"
-	"github.com/j4mes/escowx/modes"
-	"github.com/j4mes/escowx/wx"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/config"
+	"github.com/jdankney/escowx/modes"
+	"github.com/jdankney/escowx/wx"
 )
 
 const (

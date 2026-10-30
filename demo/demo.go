@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/modes"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/modes"
 )
 
 type sample struct {

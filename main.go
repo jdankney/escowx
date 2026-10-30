@@ -9,10 +9,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/config"
-	"github.com/j4mes/escowx/tracker"
-	"github.com/j4mes/escowx/ui"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/config"
+	"github.com/jdankney/escowx/tracker"
+	"github.com/jdankney/escowx/ui"
 )
 
 func main() {

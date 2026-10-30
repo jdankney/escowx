@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/j4mes/escowx/api"
+	"github.com/jdankney/escowx/api"
 )
 
 type Mode int

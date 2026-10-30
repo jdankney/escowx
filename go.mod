@@ -1,4 +1,4 @@
-module github.com/j4mes/escowx
+module github.com/jdankney/escowx
 
 go 1.24
 

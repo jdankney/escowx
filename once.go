@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/j4mes/escowx/api"
-	"github.com/j4mes/escowx/config"
-	"github.com/j4mes/escowx/demo"
-	"github.com/j4mes/escowx/modes"
-	"github.com/j4mes/escowx/wx"
+	"github.com/jdankney/escowx/api"
+	"github.com/jdankney/escowx/config"
+	"github.com/jdankney/escowx/demo"
+	"github.com/jdankney/escowx/modes"
+	"github.com/jdankney/escowx/wx"
 )
 
 // runOnce fetches everything once, prints a plain-text summary and returns
